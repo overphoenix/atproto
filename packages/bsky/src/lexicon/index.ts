@@ -163,7 +163,6 @@ import * as AppBskyUnspeccedGetTaggedSuggestions from './types/app/bsky/unspecce
 import * as AppBskyUnspeccedGetTrendingTopics from './types/app/bsky/unspecced/getTrendingTopics.js'
 import * as AppBskyUnspeccedGetTrends from './types/app/bsky/unspecced/getTrends.js'
 import * as AppBskyUnspeccedGetTrendsSkeleton from './types/app/bsky/unspecced/getTrendsSkeleton.js'
-import * as AppBskyUnspeccedHandleAgeAssuranceComplete from './types/app/bsky/unspecced/handleAgeAssuranceComplete.js'
 import * as AppBskyUnspeccedInitAgeAssurance from './types/app/bsky/unspecced/initAgeAssurance.js'
 import * as AppBskyUnspeccedSearchActorsSkeleton from './types/app/bsky/unspecced/searchActorsSkeleton.js'
 import * as AppBskyUnspeccedSearchPostsSkeleton from './types/app/bsky/unspecced/searchPostsSkeleton.js'
@@ -2152,17 +2151,6 @@ export class AppBskyUnspeccedNS {
     >,
   ) {
     const nsid = 'app.bsky.unspecced.getTrendsSkeleton' // @ts-ignore
-    return this._server.xrpc.method(nsid, cfg)
-  }
-
-  handleAgeAssuranceComplete<AV extends AuthVerifier>(
-    cfg: ConfigOf<
-      AV,
-      AppBskyUnspeccedHandleAgeAssuranceComplete.Handler<ExtractAuth<AV>>,
-      AppBskyUnspeccedHandleAgeAssuranceComplete.HandlerReqCtx<ExtractAuth<AV>>
-    >,
-  ) {
-    const nsid = 'app.bsky.unspecced.handleAgeAssuranceComplete' // @ts-ignore
     return this._server.xrpc.method(nsid, cfg)
   }
 
