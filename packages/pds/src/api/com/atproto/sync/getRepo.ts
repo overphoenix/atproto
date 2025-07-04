@@ -5,23 +5,17 @@ import {
   RepoRootNotFoundError,
   SqlRepoReader,
 } from '../../../../actor-store/repo/sql-repo-reader'
-import { AuthScope } from '../../../../auth-verifier'
+import { isUserOrAdmin } from '../../../../auth-verifier'
 import { AppContext } from '../../../../context'
 import { Server } from '../../../../lexicon'
 import { assertRepoAvailability } from './util'
 
 export default function (server: Server, ctx: AppContext) {
   server.com.atproto.sync.getRepo({
-    auth: ctx.authVerifier.optionalAccessOrAdminToken({
-      additional: [AuthScope.Takendown],
-    }),
+    auth: ctx.authVerifier.authorizationOrAdminTokenOptional(),
     handler: async ({ params, auth }) => {
       const { did, since } = params
-      await assertRepoAvailability(
-        ctx,
-        did,
-        ctx.authVerifier.isUserOrAdmin(auth, did),
-      )
+      await assertRepoAvailability(ctx, did, isUserOrAdmin(auth, did))
 
       const carStream = await getCarStream(ctx, did, since)
 

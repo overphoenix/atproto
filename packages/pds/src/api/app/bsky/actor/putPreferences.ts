@@ -2,15 +2,31 @@ import { InvalidRequestError } from '@atproto/xrpc-server'
 import { AccountPreference } from '../../../../actor-store/preference/reader'
 import { AppContext } from '../../../../context'
 import { Server } from '../../../../lexicon'
+import { ids } from '../../../../lexicon/lexicons'
 
 export default function (server: Server, ctx: AppContext) {
-  if (!ctx.bskyAppView) return
+  const { bskyAppView } = ctx
+  if (!bskyAppView) return
 
   server.app.bsky.actor.putPreferences({
-    auth: ctx.authVerifier.accessStandard({ checkTakedown: true }),
+    auth: ctx.authVerifier.authorization({
+      authorize: ({ permissions }) => {
+        permissions.assertRpc({
+          lxm: ids.AppBskyActorPutPreferences,
+          aud: `${bskyAppView.did}#bsky_appview`,
+        })
+      },
+    }),
     handler: async ({ auth, input }) => {
       const { preferences } = input.body
       const requester = auth.credentials.did
+
+      // @NOTE This is a "hack" that uses a fake lxm to allow for full access
+      const fullAccess = auth.credentials.permissions.allowsRpc({
+        lxm: `${ids.AppBskyActorPutPreferences}Full`,
+        aud: `${bskyAppView.did}#bsky_appview`,
+      })
+
       const checkedPreferences: AccountPreference[] = []
       for (const pref of preferences) {
         if (typeof pref.$type === 'string') {
@@ -19,12 +35,11 @@ export default function (server: Server, ctx: AppContext) {
           throw new InvalidRequestError('Preference is missing a $type')
         }
       }
+
       await ctx.actorStore.transact(requester, async (actorTxn) => {
-        await actorTxn.pref.putPreferences(
-          checkedPreferences,
-          'app.bsky',
-          auth.credentials.scope,
-        )
+        await actorTxn.pref.putPreferences(checkedPreferences, 'app.bsky', {
+          fullAccess,
+        })
       })
     },
   })

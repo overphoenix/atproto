@@ -10,7 +10,17 @@ export default function (server: Server, ctx: AppContext) {
   if (!bskyAppView) return
 
   server.app.bsky.feed.getFeed({
-    auth: ctx.authVerifier.accessStandard(),
+    auth: ctx.authVerifier.authorization({
+      authorize: ({ permissions }) => {
+        // @NOTE We don't need to check for "com.atproto.repo.getRecord" here
+        // because that request is not made using the user's credentials.
+
+        permissions.assertRpc({
+          lxm: ids.AppBskyFeedGetFeed,
+          aud: `${bskyAppView.did}#bsky_appview`,
+        })
+      },
+    }),
     handler: async ({ params, auth, req }) => {
       const requester = auth.credentials.did
 
